@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recibo Jovem</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Simula a redução de 50% na retenção de IRS de novembro de 2026 para quem beneficia do IRS Jovem, e o efeito no acerto anual.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500;600&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: form on the left (sticky on desktop), results on the right as a printed payslip followed by the yearly settlement; one column on phones. */
+:root{
+  --paper:#eef1f3;      /* page */
+  --sheet:#ffffff;      /* payslip / panels */
+  --ink:#121d2b;        /* text */
+  --muted:#5a6676;      /* secondary text */
+  --rule:#d5dbe2;       /* hairlines */
+  --cobalt:#2342b8;     /* accent: IRS Jovem */
+  --cobalt-soft:#e4e9fb;
+  --gain:#17704a;       /* money in your pocket */
+  --gain-soft:#e2f2ea;
+  --owe:#9a4f00;        /* money to pay */
+  --owe-soft:#fbefe0;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#0f141b;--sheet:#171e28;--ink:#e6ebf1;--muted:#97a3b3;--rule:#2b3542;
+    --cobalt:#8fa6ff;--cobalt-soft:#1f2a4d;--gain:#5fd39b;--gain-soft:#14301f;--owe:#f0a75a;--owe-soft:#36260f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#0f141b;--sheet:#171e28;--ink:#e6ebf1;--muted:#97a3b3;--rule:#2b3542;
+  --cobalt:#8fa6ff;--cobalt-soft:#1f2a4d;--gain:#5fd39b;--gain-soft:#14301f;--owe:#f0a75a;--owe-soft:#36260f;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
+.page{max-width:1140px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+p{margin:0}
+.label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+
+/* Masthead */
+.mast{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:16px 32px;border-bottom:2px solid var(--ink);padding-bottom:18px}
+.mast h1{font-size:clamp(30px,5vw,50px);font-weight:800;font-variation-settings:"wdth" 72;letter-spacing:-.01em;text-transform:uppercase}
+.mast h1 em{font-style:normal;color:var(--cobalt)}
+.mast .lede{max-width:56ch;color:var(--muted);margin-top:10px}
+.mast .stamp{font-family:var(--mono);font-size:12px;border:1.5px solid var(--cobalt);color:var(--cobalt);padding:6px 10px;border-radius:4px;transform:rotate(-2deg);white-space:nowrap}
+
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Form */
+.form{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:20px;position:sticky;top:calc(16px + env(safe-area-inset-top,0px))}
+@media (max-width:880px){.form{position:static}}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.field>.label-strong{font-weight:600;font-size:14px}
+.help{font-size:13px;color:var(--muted)}
+.money-in{display:flex;align-items:center;border:1.5px solid var(--rule);border-radius:8px;background:var(--paper);padding:0 12px}
+.money-in:focus-within{border-color:var(--cobalt)}
+.money-in input{border:0;background:transparent;padding:10px 0;width:100%;font-family:var(--mono);font-size:22px;font-weight:600;outline:none}
+.money-in span{font-family:var(--mono);color:var(--muted)}
+input[type=number]{-moz-appearance:textfield}
+input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--rule);background:transparent;border-radius:999px;padding:4px 11px;font-size:13px;cursor:pointer}
+.chip:hover{border-color:var(--cobalt);color:var(--cobalt)}
+.small-in{width:100%;border:1.5px solid var(--rule);border-radius:7px;background:var(--paper);padding:7px 9px;font-family:var(--mono);font-size:14px}
+select.small-in{font-family:var(--body)}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pair label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted)}
+hr.sep{border:0;border-top:1px dashed var(--rule);margin:0}
+
+/* IRS Jovem year picker: bar heights = exemption % */
+.years{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;align-items:end;height:92px;margin-top:4px}
+.yr{appearance:none;border:0;background:transparent;padding:0;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;height:100%;gap:4px}
+.yr .bar{background:var(--cobalt-soft);border-radius:3px 3px 0 0;transition:background .15s}
+.yr .n{font-family:var(--mono);font-size:12px;text-align:center;color:var(--muted)}
+.yr:hover .bar{background:color-mix(in srgb,var(--cobalt) 35%,var(--cobalt-soft))}
+.yr[aria-checked="true"] .bar{background:var(--cobalt)}
+.yr[aria-checked="true"] .n{color:var(--cobalt);font-weight:600}
+.years-legend{display:grid;grid-template-columns:1fr 3fr 3fr 3fr;gap:4px;font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;border-top:1px solid var(--rule);padding-top:4px}
+.jovem-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.jovem-now{font-size:14px}
+.jovem-now b{color:var(--cobalt)}
+.seg{display:inline-flex;border:1.5px solid var(--rule);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:7px 12px;font-size:13px;cursor:pointer}
+.seg button+button{border-left:1.5px solid var(--rule)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--sheet);font-weight:600}
+.link-btn{border:0;background:none;padding:0;color:var(--cobalt);text-decoration:underline;cursor:pointer;font-size:13px}
+
+details.more{border-top:1px dashed var(--rule);padding-top:12px}
+details.more>summary{cursor:pointer;font-weight:600;font-size:14px;list-style:none;display:flex;justify-content:space-between}
+details.more>summary::after{content:"+";font-family:var(--mono);color:var(--muted)}
+details.more[open]>summary::after{content:"−"}
+details.more>summary::-webkit-details-marker{display:none}
+details.more .inner{display:flex;flex-direction:column;gap:12px;margin-top:12px}
+
+/* Results */
+.results{display:flex;flex-direction:column;gap:28px;min-width:0}
+.error{background:var(--owe-soft);color:var(--owe);border-radius:8px;padding:12px 14px;font-weight:600}
+
+.headline{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:baseline}
+.headline .big{font-family:var(--display);font-weight:800;font-variation-settings:"wdth" 80;font-size:clamp(46px,8vw,78px);line-height:1;color:var(--gain);letter-spacing:-.02em}
+.headline .big.zero{color:var(--muted)}
+.headline p{max-width:44ch;color:var(--muted)}
+
+/* Payslip */
+.slip{background:var(--sheet);border:1px solid var(--rule);border-radius:2px;padding:22px 22px 18px;position:relative;
+  -webkit-mask:radial-gradient(circle 5px at 50% 0,#0000 98%,#000) 50% 0/14px 100% repeat-x;mask:radial-gradient(circle 5px at 50% 0,#0000 98%,#000) 50% 0/14px 100% repeat-x}
+.slip-head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;border-bottom:1.5px solid var(--ink);padding-bottom:10px;margin-top:6px}
+.slip-head h2{font-size:20px;font-weight:700;font-variation-settings:"wdth" 90;text-transform:uppercase;letter-spacing:.02em}
+.slip-table-wrap{overflow-x:auto}
+.slip table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px}
+.slip th{font-family:var(--mono);font-weight:500;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:10px 0 6px 12px}
+.slip th:first-child{text-align:left;padding-left:0}
+.slip td{padding:7px 0 7px 12px;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.slip td:first-child{text-align:left;padding-left:0;font-family:var(--body);white-space:normal}
+.slip tr.minus td:not(:first-child){color:var(--muted)}
+.slip tr.tax td{border-top:1px dashed var(--rule)}
+.slip tr.tax td.changed{color:var(--cobalt);font-weight:600}
+.slip tr.total td{border-top:1.5px solid var(--ink);font-weight:700;font-size:16px;padding-top:10px}
+.slip tr.total td.changed{color:var(--gain)}
+.slip .sub{display:block;font-size:12px;color:var(--muted)}
+.slip-foot{margin-top:12px;font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+
+/* Year cards */
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:var(--r);padding:22px;display:flex;flex-direction:column;gap:18px}
+.panel h2{font-size:24px;font-weight:700;font-variation-settings:"wdth" 85}
+.panel .intro{color:var(--muted);max-width:62ch}
+.compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:8px;overflow:hidden}
+.compare>div{background:var(--sheet);padding:14px;display:flex;flex-direction:column;gap:4px}
+.compare strong{font-family:var(--mono);font-size:20px;font-weight:600}
+.compare .hl{background:var(--cobalt-soft)}
+.compare .hl strong{color:var(--cobalt)}
+@media (max-width:560px){.compare{grid-template-columns:1fr}}
+.meter{display:flex;flex-direction:column;gap:6px}
+.meter-track{height:12px;background:var(--paper);border-radius:6px;overflow:hidden;display:flex}
+.meter-track span{display:block;height:100%}
+.meter-track .ex{background:var(--cobalt)}
+.meter-track .tx{background:var(--rule)}
+.meter-legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:13px;color:var(--muted)}
+.meter-legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+
+.balances{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:560px){.balances{grid-template-columns:1fr}}
+.bal{border:1px solid var(--rule);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.bal strong{font-family:var(--mono);font-size:24px;font-weight:600}
+.pill{align-self:flex-start;font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px}
+.pill.receive{background:var(--gain-soft);color:var(--gain)}
+.pill.pay{background:var(--owe-soft);color:var(--owe)}
+.pill.even{background:var(--paper);color:var(--muted)}
+.bal.current{border-color:var(--ink);border-width:1.5px}
+.verdict{border-left:4px solid var(--ink);padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:6px}
+.verdict h3{font-size:19px;font-weight:700;font-variation-settings:"wdth" 90}
+.verdict p{max-width:64ch}
+
+details.steps{border-top:1px solid var(--rule);padding-top:12px}
+details.steps>summary{cursor:pointer;font-weight:600}
+details.steps .body{margin-top:10px;display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--muted);max-width:70ch}
+.months{overflow-x:auto}
+.months table{border-collapse:collapse;width:100%;font-size:13px;min-width:360px}
+.months th,.months td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--rule)}
+.months th:first-child,.months td:first-child{text-align:left}
+.months th{font-family:var(--mono);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.months td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.months tr.nov td{background:var(--cobalt-soft);font-weight:600}
+
+footer{font-size:13px;color:var(--muted);border-top:1px solid var(--rule);padding-top:16px;display:flex;flex-direction:column;gap:6px}
+footer a{color:var(--cobalt)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+[hidden]{display:none!important}
+body{margin:0}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header class="mast">
+    <div>
+      <div class="label">Simulador · retenção de novembro 2026</div>
+      <h1>Novembro com <em>IRS Jovem</em></h1>
+      <p class="lede">Em novembro de 2026 a retenção de IRS é cortada para metade. Se tens IRS Jovem, a tua retenção já é mais baixa. Vê quanto recebes a mais, quanto vale o IRS Jovem no ano e como fica o acerto em 2027.</p>
+    </div>
+    <span class="stamp">Continente · Tabela I · 2026</span>
+  </header>
+
+  <div class="grid">
+    <form class="form" id="form" autocomplete="off" novalidate>
+      <div class="field">
+        <label for="salary">Salário bruto mensal</label>
+        <div class="money-in"><input id="salary" type="number" value="1500" min="1" max="200000" step="0.01" inputmode="decimal" aria-describedby="salaryHelp"><span>€</span></div>
+        <p class="help" id="salaryHelp">Antes de IRS e Segurança Social, sem subsídios nem refeição.</p>
+        <div class="presets" aria-label="Exemplos">
+          <button type="button" class="chip" data-salary="1000">1 000 €</button>
+          <button type="button" class="chip" data-salary="1500">1 500 €</button>
+          <button type="button" class="chip" data-salary="1850">1 850 €</button>
+          <button type="button" class="chip" data-salary="2500">2 500 €</button>
+          <button type="button" class="chip" data-salary="4000">4 000 €</button>
+        </div>
+      </div>
+
+      <hr class="sep">
+
+      <div class="field">
+        <span class="label-strong" id="yearsLabel">Em 2026 estás em que ano do IRS Jovem?</span>
+        <div class="years" id="years" role="radiogroup" aria-labelledby="yearsLabel"></div>
+        <div class="years-legend" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span></div>
+        <div class="jovem-row">
+          <p class="jovem-now" id="jovemNow">—</p>
+          <button type="button" class="link-btn" id="noJovem">Não tenho IRS Jovem</button>
+        </div>
+        <p class="help">Conta os anos em que tiveste rendimentos de trabalho sem seres dependente, incluindo 2026. Começaste em 2023? Então 2026 é o 4.º ano. Só até aos 35 anos, inclusive, a 31 de dezembro.</p>
+      </div>
+
+      <div class="field">
+        <span class="label-strong" id="payslipLabel">A empresa já aplica o IRS Jovem no recibo?</span>
+        <div class="seg" role="group" aria-labelledby="payslipLabel">
+          <button type="button" id="onSlipYes" aria-pressed="true">Sim</button>
+          <button type="button" id="onSlipNo" aria-pressed="false">Não, só na declaração</button>
+        </div>
+        <p class="help" id="payslipHelp">A redução na retenção é opcional. Sem ela, o benefício chega todo no reembolso.</p>
+      </div>
+
+      <hr class="sep">
+
+      <div class="field">
+        <span class="label-strong" id="subsLabel">Subsídios de férias e Natal</span>
+        <div class="seg" role="group" aria-labelledby="subsLabel">
+          <button type="button" id="lump" aria-pressed="true">Pagos à parte</button>
+          <button type="button" id="duodec" aria-pressed="false">Em duodécimos</button>
+        </div>
+        <div class="pair" id="monthSelectors">
+          <label for="holidayMonth">Férias em
+            <select id="holidayMonth" class="small-in"></select></label>
+          <label for="christmasMonth">Natal em
+            <select id="christmasMonth" class="small-in"></select></label>
+        </div>
+      </div>
+
+      <details class="more" id="extrasDetails">
+        <summary>Complementos do recibo (opcional)</summary>
+        <div class="inner">
+          <div class="pair">
+            <label for="mealDaily">Refeição €/dia<input id="mealDaily" class="small-in" type="number" value="0" min="0" max="100" step="0.01" inputmode="decimal"></label>
+            <label for="mealMode">Recebes em
+              <select id="mealMode" class="small-in"><option value="card">Cartão</option><option value="cash">Dinheiro</option></select></label>
+          </div>
+          <div class="pair">
+            <label for="mealNovDays">Dias em novembro<input id="mealNovDays" class="small-in" type="number" value="20" min="0" max="30" step="1" inputmode="numeric"></label>
+            <label for="mealYearDays">Dias no ano<input id="mealYearDays" class="small-in" type="number" value="220" min="0" max="300" step="1" inputmode="numeric"></label>
+          </div>
+          <p class="help" id="mealHelp">Em 2026 estão isentos até 10,46 €/dia em cartão ou 6,15 €/dia em dinheiro. Só o excedente paga IRS e Segurança Social.</p>
+          <div class="pair">
+            <label for="taxableExtra">Prémios tributáveis €/mês<input id="taxableExtra" class="small-in" type="number" value="0" min="0" max="100000" step="0.01" inputmode="decimal"></label>
+            <label for="reimbursements">Ajudas de custo isentas €/mês<input id="reimbursements" class="small-in" type="number" value="0" min="0" max="100000" step="0.01" inputmode="decimal"></label>
+          </div>
+          <p class="help">Os prémios contam como salário, pagos 12 vezes por ano. As ajudas de custo só são isentas se cumprirem os requisitos legais e estiverem documentadas.</p>
+        </div>
+      </details>
+    </form>
+
+    <div class="results" aria-live="polite">
+      <div class="error" id="error" hidden>Verifica os valores. O salário tem de ser positivo e os dias de refeição no ano não podem ser menos do que os de novembro.</div>
+
+      <section id="out" class="results">
+        <div class="headline">
+          <div class="big" id="novDelta">—</div>
+          <p id="novText">—</p>
+        </div>
+
+        <article class="slip" aria-labelledby="slipTitle">
+          <div class="slip-head">
+            <h2 id="slipTitle">Recibo de novembro 2026</h2>
+            <span class="label" id="slipTag">—</span>
+          </div>
+          <div class="slip-table-wrap">
+            <table>
+              <thead><tr><th scope="col">Descrição</th><th scope="col">Sem a medida</th><th scope="col">Com a medida</th></tr></thead>
+              <tbody id="slipRows"></tbody>
+            </table>
+          </div>
+          <div class="slip-foot" id="slipFoot"></div>
+          <details class="steps">
+            <summary>Como é calculada a retenção</summary>
+            <div class="body" id="slipSteps"></div>
+          </details>
+        </article>
+
+        <section class="panel" aria-labelledby="jovemTitle">
+          <div>
+            <div class="label">IRS de 2026 · entregue em 2027</div>
+            <h2 id="jovemTitle">Quanto vale o IRS Jovem este ano</h2>
+          </div>
+          <div class="compare">
+            <div><span class="label">IRS anual sem IRS Jovem</span><strong id="taxNoJ">—</strong></div>
+            <div><span class="label">IRS anual com IRS Jovem</span><strong id="taxJ">—</strong></div>
+            <div class="hl"><span class="label">Poupança</span><strong id="saving">—</strong></div>
+          </div>
+          <div class="meter">
+            <div class="meter-track" aria-hidden="true"><span class="ex" id="meterEx"></span><span class="tx" id="meterTx"></span></div>
+            <div class="meter-legend" id="meterLegend"></div>
+          </div>
+          <details class="steps">
+            <summary>Como é estimado o imposto anual</summary>
+            <div class="body" id="annualSteps"></div>
+          </details>
+        </section>
+
+        <section class="panel" aria-labelledby="settleTitle">
+          <div>
+            <div class="label">Acerto na declaração</div>
+            <h2 id="settleTitle">Reembolso ou pagamento em 2027</h2>
+          </div>
+          <p class="intro">O imposto do ano é o mesmo com ou sem a medida de novembro. Só muda quanto já pagaste por adiantamento.</p>
+          <div class="compare">
+            <div><span class="label">IRS retido sem a medida</span><strong id="heldB">—</strong></div>
+            <div><span class="label">IRS retido com a medida</span><strong id="heldA">—</strong></div>
+            <div><span class="label">IRS anual estimado</span><strong id="dueA">—</strong></div>
+          </div>
+          <div class="balances">
+            <div class="bal"><span class="label">Acerto sem a medida</span><strong id="balB">—</strong><span class="pill" id="balBType">—</span></div>
+            <div class="bal current"><span class="label">Acerto com a medida</span><strong id="balA">—</strong><span class="pill" id="balAType">—</span></div>
+          </div>
+          <div class="verdict">
+            <h3 id="verdictTitle">—</h3>
+            <p id="verdictText">—</p>
+            <p id="verdictText2" class="help">—</p>
+          </div>
+          <details class="steps">
+            <summary>Ver os 12 meses lado a lado</summary>
+            <div class="body">
+              <div class="months">
+                <table>
+                  <thead><tr><th scope="col">Mês</th><th scope="col">IRS retido</th><th scope="col">Líquido sem a medida</th><th scope="col">Líquido com a medida</th></tr></thead>
+                  <tbody id="monthRows"></tbody>
+                </table>
+              </div>
+              <p>Valor transferido para a conta, sem o cartão refeição.</p>
+            </div>
+          </details>
+        </section>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <p><b>Pressupostos.</b> Trabalhador por conta de outrem, não casado, sem dependentes, residente no Continente, Segurança Social de 11%, 12 salários e dois subsídios iguais ao salário. O imposto anual é uma estimativa simplificada: considera 250 € de despesas gerais familiares e nenhuma outra dedução, e usa as taxas propostas para 2026, que dependem da legislação final.</p>
+    <p><b>IRS Jovem</b> (art. 12.º-B do CIRS): isenção de 100% no 1.º ano, 75% do 2.º ao 4.º, 50% do 5.º ao 7.º e 25% do 8.º ao 10.º, até 55 × IAS (29 542,15 € em 2026). Na retenção, a taxa efetiva da tabela é calculada sobre o rendimento total e aplicada só à parte não isenta, com a parte isenta limitada a 2 110,15 € por pagamento (art. 99.º-F, n.º 4). No IRS anual, o rendimento isento conta para determinar a taxa (art. 22.º, n.º 4). Assume-se que a redução de 50% em novembro se aplica à retenção já calculada com IRS Jovem.</p>
+    <p>Ferramenta educativa, sem relação com a AT. Inspirada no <a href="https://oaf-simulador-irs.vercel.app/" target="_blank" rel="noopener">simulador d'O Amador Financeiro</a>. Fontes: <a href="https://diariodarepublica.pt/dr/detalhe/despacho/233-a-2026-1177926114" target="_blank" rel="noopener">tabelas de retenção 2026</a>, <a href="https://diariodarepublica.pt/dr/detalhe/despacho/12523-a-2026-1180337885" target="_blank" rel="noopener">medida de novembro</a>, <a href="https://info.portaldasfinancas.gov.pt/pt/informacao_fiscal/codigos_tributarios/cirs_rep/Pages/irs12b.aspx" target="_blank" rel="noopener">art. 12.º-B CIRS</a>.</p>
+  </footer>
+</div>
+
+<script id="calc">
+// Pure calculations, no DOM. Exposed as window.IRSJ.
+(function (root) {
+  'use strict';
+  const round = n => Math.round((n + Number.EPSILON) * 100) / 100;
+  const IAS = 537.13;
+  // Annual-tax parameters. Rates are the 2026 projection from Proposta de Lei 108/XVII/2.
+  const P2026 = {
+    ias: IAS,
+    limits: [8342, 12587, 17838, 23089, 29397, 43090, 46566, 86634, Infinity],
+    rates: [.122, .152, .207, .236, .306, .346, .431, .446, .48],
+    minRef: 12880
+  };
+  // 2026 withholding, mainland, Category A, Table I (Despacho 233-A/2026).
+  const TABLE = [
+    { max: 920, rate: 0, deduct: () => 0 },
+    { max: 1042, rate: .125, deduct: r => .125 * 2.6 * (1273.85 - r) },
+    { max: 1108, rate: .157, deduct: r => .157 * 1.35 * (1554.83 - r) },
+    { max: 1154, rate: .157, deduct: () => 94.71 },
+    { max: 1212, rate: .212, deduct: () => 158.18 },
+    { max: 1819, rate: .241, deduct: () => 193.33 },
+    { max: 2119, rate: .311, deduct: () => 320.66 },
+    { max: 2499, rate: .349, deduct: () => 401.19 },
+    { max: 3305, rate: .3836, deduct: () => 487.66 },
+    { max: 5547, rate: .3969, deduct: () => 531.62 },
+    { max: 20221, rate: .4495, deduct: () => 823.4 },
+    { max: Infinity, rate: .4717, deduct: () => 1272.31 }
+  ];
+  const NOV_LIMIT = 20221;
+  const JOVEM_PCT = [0, 1, .75, .75, .75, .5, .5, .5, .25, .25, .25];
+  const jovemCap = (P = P2026) => round(55 * P.ias);
+  const jovemCapPerPayment = (P = P2026) => round(55 * P.ias / 14);
+  const MEAL_LIMIT = { card: 10.46, cash: 6.15 };
+
+  // Withholding on one payment R. With IRS Jovem (art. 99.º-F n.º 4) the effective table
+  // rate on the whole payment is applied only to the non-exempt part.
+  function withholding(R, pct = 0) {
+    if (!(R > 0)) return { value: 0, exact: 0, effRate: 0, exempt: 0, subject: 0, rate: 0, deduct: 0, full: 0 };
+    const row = TABLE.find(r => R <= r.max), deduct = row.deduct(R);
+    const full = Math.max(0, R * row.rate - deduct), effRate = full / R;
+    const exempt = pct > 0 ? Math.min(R * pct, jovemCapPerPayment()) : 0, subject = R - exempt;
+    const exact = subject * effRate;
+    return { value: Math.floor(exact + 1e-9), exact, effRate, exempt: round(exempt), subject: round(subject), rate: row.rate, deduct, full: Math.floor(full + 1e-9) };
+  }
+  const halve = (value, R) => R <= NOV_LIMIT ? Math.floor(value * .5 + 1e-9) : value;
+
+  function mealDays(month, ex) {
+    if (month === 11) return ex.mealNovDays;
+    const other = ex.mealYearDays - ex.mealNovDays, base = Math.floor(other / 11), rest = other % 11;
+    const pos = month < 11 ? month : 11;
+    return base + (pos <= rest ? 1 : 0);
+  }
+
+  // inp: { gross, payout:'lump'|'duodec', holidayMonth, christmasMonth, pct, onPayslip, extras }
+  function calcMonth(inp, month, measure) {
+    const { gross, extras: ex } = inp, pct = inp.onPayslip ? inp.pct : 0, duo = inp.payout === 'duodec';
+    const extra = duo ? 2 / 12 : Number(inp.holidayMonth === month) + Number(inp.christmasMonth === month);
+    const grossBase = round(gross * (1 + extra)), days = mealDays(month, ex), mealTotal = round(ex.mealDaily * days);
+    const mealTaxable = round(Math.max(0, ex.mealDaily - MEAL_LIMIT[ex.mealMode]) * days), taxableExtra = round(ex.taxableExtra);
+    const R = gross + taxableExtra + mealTaxable;
+    const baseW = withholding(R, pct), subW = withholding(gross, pct);
+    let held = duo ? Math.floor(baseW.value + 2 * subW.value / 12 + 1e-9) : baseW.value + subW.value * extra;
+    if (measure && month === 11) held = duo ? halve(held, R) : halve(baseW.value, R) + halve(subW.value, gross) * extra;
+    held = round(held);
+    const taxableGross = round(grossBase + taxableExtra + mealTaxable), ss = round(taxableGross * .11);
+    const mealCash = ex.mealMode === 'cash' ? mealTotal : 0, mealCard = ex.mealMode === 'card' ? mealTotal : 0;
+    const net = round(grossBase + taxableExtra + mealCash + ex.reimbursements - ss - held);
+    return { month, gross: grossBase, salary: gross, subsidy: round(gross * extra), extra, taxableExtra, mealTotal, mealTaxable, mealCash, mealCard, days, reimbursements: ex.reimbursements, R, baseW, subW, taxableGross, ss, held, net };
+  }
+
+  function progressive(x, P) {
+    let tax = 0, prev = 0;
+    for (let i = 0; i < P.limits.length; i++) {
+      tax += Math.max(0, Math.min(x, P.limits[i]) - prev) * P.rates[i];
+      if (x <= P.limits[i]) break;
+      prev = P.limits[i];
+    }
+    return tax;
+  }
+  const solidarity = x => Math.max(0, Math.min(x, 250000) - 80000) * .025 + Math.max(0, x - 250000) * .05;
+  const specificDeduction = (G, ss, P) => Math.min(G, Math.max(round(8.54 * P.ias), round(ss)));
+  const GENERAL_EXPENSES = 250;
+
+  // Annual tax without IRS Jovem: specific deduction, existence minimum (art. 70.º), brackets, 250 € general expenses.
+  function annualNormal(G, ss, P = P2026) {
+    const specific = specificDeduction(G, ss, P), ref = P.minRef, first = P.limits[0], rate = P.rates[0], gel = GENERAL_EXPENSES;
+    const L = ref - gel / (rate * 3.6) + first / 3.6;
+    let minimum = 0;
+    if (G <= 2.2 * 14 * P.ias) {
+      if (G <= ref) minimum = ref - (specific + gel / rate);
+      else if (G <= L) minimum = ref - 2.6 * (G - ref) - (specific + gel / rate);
+      else minimum = (L - first) - 1.35 * (G - L) - specific;
+      minimum = Math.max(0, Math.min(minimum, G - specific));
+    }
+    const taxable = Math.max(0, round(G - specific - minimum));
+    const regular = progressive(taxable, P), sol = solidarity(taxable), deduction = Math.min(gel, regular);
+    return { due: Math.max(0, round(regular + sol - deduction)), taxable, specific, minimum: round(minimum), regular: round(regular), solidarity: round(sol), deduction };
+  }
+
+  // Annual tax with IRS Jovem: exempt part up to 55 IAS; the exempt amount (without deductions)
+  // is added only to find the average rate (art. 22.º n.º 4 and n.º 7), which then applies to the taxable part.
+  function annualJovem(G, ss, pct, P = P2026) {
+    const normal = annualNormal(G, ss, P);
+    if (!(pct > 0)) return { ...normal, normal, exempt: 0, saving: 0, jovem: false };
+    const exempt = round(Math.min(G * pct, jovemCap(P))), nonExempt = round(G - exempt);
+    const specific = specificDeduction(nonExempt, ss, P), taxable = Math.max(0, round(nonExempt - specific));
+    const rateBase = round(taxable + exempt), full = progressive(rateBase, P) + solidarity(rateBase);
+    const avgRate = rateBase > 0 ? full / rateBase : 0, regular = round(taxable * avgRate), deduction = Math.min(GENERAL_EXPENSES, regular);
+    let due = Math.max(0, round(regular - deduction));
+    // The existence minimum protects low incomes; IRS Jovem never leaves you worse off than without it.
+    const capped = due > normal.due;
+    if (capped) due = normal.due;
+    return { due, normal, exempt, nonExempt, specific, taxable, rateBase, avgRate, regular, deduction, capped, saving: round(normal.due - due), jovem: true };
+  }
+
+  function simulate(inp, P = P2026) {
+    const before = [], after = [];
+    for (let m = 1; m <= 12; m++) { before.push(calcMonth(inp, m, false)); after.push(calcMonth(inp, m, true)); }
+    const sum = (a, k) => round(a.reduce((s, x) => s + x[k], 0));
+    const taxableAnnual = sum(after, 'taxableGross'), ssAnnual = sum(after, 'ss');
+    const heldBefore = sum(before, 'held'), heldAfter = sum(after, 'held');
+    const tax = annualJovem(taxableAnnual, ssAnnual, inp.pct, P);
+    const bal = held => { const d = round(held - tax.due); return { signed: d, amount: Math.abs(d), type: d > .005 ? 'receive' : d < -.005 ? 'pay' : 'even' }; };
+    return { before, after, taxableAnnual, ssAnnual, heldBefore, heldAfter, advance: round(heldBefore - heldAfter), novDelta: round(after[10].net - before[10].net), tax, balBefore: bal(heldBefore), balAfter: bal(heldAfter) };
+  }
+
+  root.IRSJ = { P2026, TABLE, JOVEM_PCT, NOV_LIMIT, MEAL_LIMIT, jovemCap, jovemCapPerPayment, withholding, calcMonth, annualNormal, annualJovem, simulate, round };
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+
+<script>
+(function () {
+  'use strict';
+  const { JOVEM_PCT, MEAL_LIMIT, jovemCapPerPayment, simulate } = window.IRSJ;
+  const $ = id => document.getElementById(id);
+  const eur = new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money = n => eur.format(Math.abs(n) < .005 ? 0 : n);
+  const abs = n => money(Math.abs(n));
+  const pctFmt = (n, d = 2) => (n * 100).toLocaleString('pt-PT', { minimumFractionDigits: d, maximumFractionDigits: d }) + '%';
+  const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const ORD = n => n + '.º';
+
+  const state = { year: 4, onPayslip: true, payout: 'lump' };
+
+  // Month selects
+  [['holidayMonth', 6], ['christmasMonth', 11]].forEach(([id, sel]) => {
+    MONTHS.forEach((name, i) => { const o = document.createElement('option'); o.value = i + 1; o.textContent = name; if (i + 1 === sel) o.selected = true; $(id).appendChild(o); });
+  });
+
+  // Year picker: bar height is the exemption percentage
+  const yearsEl = $('years');
+  for (let y = 1; y <= 10; y++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'yr'; b.dataset.year = y;
+    b.setAttribute('role', 'radio');
+    b.setAttribute('aria-label', ORD(y) + ' ano, isenção de ' + JOVEM_PCT[y] * 100 + '%');
+    const bar = document.createElement('span'); bar.className = 'bar'; bar.style.height = (JOVEM_PCT[y] * 66) + 'px';
+    const n = document.createElement('span'); n.className = 'n'; n.textContent = y;
+    b.append(bar, n);
+    b.addEventListener('click', () => { state.year = y; draw(); });
+    b.addEventListener('keydown', e => {
+      const d = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
+      if (!d) return;
+      e.preventDefault(); state.year = Math.min(10, Math.max(1, (state.year || 1) + d)); draw();
+      yearsEl.querySelector(`[data-year="${state.year}"]`).focus();
+    });
+    yearsEl.appendChild(b);
+  }
+  $('noJovem').addEventListener('click', () => { state.year = 0; draw(); });
+
+  const press = (key, val) => { state[key] = val; draw(); };
+  $('onSlipYes').addEventListener('click', () => press('onPayslip', true));
+  $('onSlipNo').addEventListener('click', () => press('onPayslip', false));
+  $('lump').addEventListener('click', () => press('payout', 'lump'));
+  $('duodec').addEventListener('click', () => press('payout', 'duodec'));
+  document.querySelectorAll('[data-salary]').forEach(b => b.addEventListener('click', () => { $('salary').value = b.dataset.salary; draw(); }));
+  ['salary', 'holidayMonth', 'christmasMonth', 'mealDaily', 'mealMode', 'mealNovDays', 'mealYearDays', 'taxableExtra', 'reimbursements']
+    .forEach(id => $(id).addEventListener('input', draw));
+  $('form').addEventListener('submit', e => e.preventDefault());
+
+  function num(id, max) { const s = $(id).value.trim(), n = Number(s); return s !== '' && Number.isFinite(n) && n >= 0 && n <= max ? n : null; }
+  function readInput() {
+    const gross = num('salary', 200000);
+    const extras = { mealDaily: num('mealDaily', 100), mealNovDays: num('mealNovDays', 30), mealYearDays: num('mealYearDays', 300), taxableExtra: num('taxableExtra', 100000), reimbursements: num('reimbursements', 100000), mealMode: $('mealMode').value };
+    if (!gross || Object.values(extras).some(v => v === null)) return null;
+    if (!Number.isInteger(extras.mealNovDays) || !Number.isInteger(extras.mealYearDays) || extras.mealYearDays < extras.mealNovDays) return null;
+    return { gross, extras, payout: state.payout, holidayMonth: Number($('holidayMonth').value), christmasMonth: Number($('christmasMonth').value), pct: JOVEM_PCT[state.year], onPayslip: state.onPayslip };
+  }
+
+  const set = (id, v) => { $(id).textContent = v; };
+  const paras = (id, list) => { const el = $(id); el.replaceChildren(...list.filter(Boolean).map(t => { const p = document.createElement('p'); p.textContent = t; return p; })); };
+  const PILL = { receive: 'a receber', pay: 'a pagar', even: 'sem acerto' };
+
+  function drawControls() {
+    yearsEl.querySelectorAll('.yr').forEach(b => {
+      const on = Number(b.dataset.year) === state.year;
+      b.setAttribute('aria-checked', String(on)); b.tabIndex = on || (state.year === 0 && b.dataset.year === '1') ? 0 : -1;
+    });
+    const j = state.year > 0;
+    $('jovemNow').innerHTML = '';
+    if (j) { const b = document.createElement('b'); b.textContent = ORD(state.year) + ' ano'; $('jovemNow').append(b, ' · ' + JOVEM_PCT[state.year] * 100 + '% do rendimento isento'); }
+    else $('jovemNow').textContent = 'Sem IRS Jovem';
+    $('noJovem').hidden = !j;
+    $('onSlipYes').disabled = $('onSlipNo').disabled = !j;
+    $('onSlipYes').setAttribute('aria-pressed', String(state.onPayslip));
+    $('onSlipNo').setAttribute('aria-pressed', String(!state.onPayslip));
+    $('lump').setAttribute('aria-pressed', String(state.payout === 'lump'));
+    $('duodec').setAttribute('aria-pressed', String(state.payout === 'duodec'));
+    $('monthSelectors').hidden = state.payout === 'duodec';
+    const mode = $('mealMode').value;
+    set('mealHelp', 'Em 2026 está isento até ' + money(MEAL_LIMIT[mode]) + '/dia ' + (mode === 'card' ? 'em cartão' : 'em dinheiro') + '. Só o excedente paga IRS e Segurança Social.');
+  }
+
+  function draw() {
+    drawControls();
+    const inp = readInput();
+    $('error').hidden = !!inp; $('out').hidden = !inp;
+    if (!inp) return;
+    const s = simulate(inp), nb = s.before[10], na = s.after[10], jovem = inp.pct > 0, onSlip = jovem && inp.onPayslip, t = s.tax;
+
+    // Headline
+    set('novDelta', (s.novDelta > 0 ? '+' : '') + money(s.novDelta));
+    $('novDelta').classList.toggle('zero', s.novDelta <= 0);
+    set('novText', s.novDelta > 0
+      ? 'a mais no líquido de novembro. É IRS que deixas de adiantar agora, não um desconto no imposto do ano.'
+      : (nb.held === 0 ? 'Em novembro não tens IRS retido, por isso a medida não muda nada no teu recibo.' : 'Com estes valores, a medida não altera o líquido de novembro.'));
+
+    // Payslip
+    set('slipTag', jovem ? (onSlip ? 'IRS Jovem ' + JOVEM_PCT[state.year] * 100 + '% aplicado' : 'IRS Jovem fora do recibo') : 'Sem IRS Jovem');
+    const rows = [['Vencimento base', nb.salary, na.salary]];
+    if (nb.subsidy > 0) {
+      const lbl = inp.payout === 'duodec' ? 'Duodécimos de férias e Natal' : (inp.holidayMonth === 11 && inp.christmasMonth === 11 ? 'Subsídios de férias e Natal' : inp.christmasMonth === 11 ? 'Subsídio de Natal' : 'Subsídio de férias');
+      rows.push([lbl, nb.subsidy, na.subsidy]);
+    }
+    if (nb.taxableExtra > 0) rows.push(['Prémios tributáveis', nb.taxableExtra, na.taxableExtra]);
+    if (nb.mealCash > 0) rows.push(['Subsídio de refeição (dinheiro)', nb.mealCash, na.mealCash]);
+    if (nb.reimbursements > 0) rows.push(['Ajudas de custo', nb.reimbursements, na.reimbursements]);
+    rows.push(['Segurança Social 11%', -nb.ss, -na.ss, 'minus']);
+    rows.push(['IRS retido', -nb.held, -na.held, 'tax', onSlip ? 'com IRS Jovem' : '']);
+    rows.push(['Líquido a receber', nb.net, na.net, 'total']);
+    const tb = $('slipRows'); tb.replaceChildren();
+    rows.forEach(([label, b, a, cls, sub]) => {
+      const tr = document.createElement('tr'); if (cls) tr.className = cls;
+      const td0 = document.createElement('td'); td0.textContent = label;
+      if (sub) { const sp = document.createElement('span'); sp.className = 'sub'; sp.textContent = sub; td0.appendChild(sp); }
+      tr.appendChild(td0);
+      [b, a].forEach((v, i) => { const td = document.createElement('td'); td.textContent = (v < 0 ? '− ' : '') + abs(v); if (i === 1 && Math.abs(a - b) > .005) td.className = 'changed'; tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    const foot = [];
+    if (na.mealCard > 0) foot.push('Cartão refeição em novembro: ' + money(na.mealCard) + ' (' + na.days + ' dias), fora da transferência.');
+    if (jovem) {
+      const noJ = simulate({ ...inp, onPayslip: false }).after[10];
+      foot.push(onSlip
+        ? 'Sem IRS Jovem no recibo, o IRS retido em novembro (já com a medida) seria ' + money(noJ.held) + '.'
+        : 'Se pedires à empresa para aplicar o IRS Jovem, o IRS retido em novembro (já com a medida) desce para ' + money(simulate({ ...inp, onPayslip: true }).after[10].held) + '.');
+    }
+    paras('slipFoot', foot);
+
+    const bw = na.baseW, sw = na.subW, cap = jovemCapPerPayment();
+    paras('slipSteps', [
+      'Tabela I de 2026 para ' + money(nb.R) + ': ' + money(nb.R) + ' × ' + pctFmt(bw.rate) + ' − ' + money(bw.deduct) + ' = ' + money(bw.full) + ', uma taxa efetiva de ' + pctFmt(bw.effRate) + '.',
+      onSlip ? 'IRS Jovem: parte isenta = o menor de ' + JOVEM_PCT[state.year] * 100 + '% × ' + money(nb.R) + ' e ' + money(cap) + ' (55 × IAS ÷ 14) = ' + money(bw.exempt) + '. Retenção = (' + money(nb.R) + ' − ' + money(bw.exempt) + ') × ' + pctFmt(bw.effRate) + ' = ' + money(nb.baseW.value) + '.' : (jovem ? 'Como a empresa não aplica o IRS Jovem, a retenção usa a tabela normal. O benefício é recebido no reembolso.' : ''),
+      nb.subsidy > 0 ? (inp.payout === 'duodec' ? 'Os duodécimos são retidos à parte, proporcionalmente: 2/12 da retenção de um subsídio de ' + money(inp.gross) + ' (' + money(sw.value) + ').' : 'Cada subsídio é retido à parte, como um pagamento de ' + money(inp.gross) + ': ' + money(sw.value) + (onSlip ? ' já com IRS Jovem' : '') + '.') : '',
+      'Medida de novembro: cada retenção é cortada para metade (arredondada para baixo), desde que o pagamento não passe de 20 221 €. IRS retido: ' + money(nb.held) + ' passa a ' + money(na.held) + '.'
+    ]);
+
+    // IRS Jovem value
+    set('taxNoJ', money(t.normal.due));
+    set('taxJ', money(t.due));
+    set('saving', jovem ? money(t.saving) : '—');
+    const G = s.taxableAnnual, exShare = G > 0 ? t.exempt / G : 0;
+    $('meterEx').style.width = (exShare * 100) + '%';
+    $('meterTx').style.width = (100 - exShare * 100) + '%';
+    const lg = $('meterLegend'); lg.replaceChildren();
+    [['var(--cobalt)', 'Isento: ' + money(t.exempt)], ['var(--rule)', 'Sujeito a IRS: ' + money(G - t.exempt)]].forEach(([c, txt]) => {
+      const sp = document.createElement('span'); const i = document.createElement('i'); i.style.background = c; sp.append(i, txt); lg.appendChild(sp);
+    });
+    const nrm = t.normal;
+    paras('annualSteps', [
+      'Rendimento anual sujeito: ' + money(G) + '. Segurança Social: ' + money(s.ssAnnual) + '.',
+      'Sem IRS Jovem: dedução específica de ' + money(nrm.specific) + (nrm.minimum > 0 ? ', mínimo de existência de ' + money(nrm.minimum) : '') + ', rendimento coletável de ' + money(nrm.taxable) + ', imposto pelos escalões ' + money(nrm.regular) + (nrm.solidarity > 0 ? ' mais solidariedade ' + money(nrm.solidarity) : '') + ', menos ' + money(nrm.deduction) + ' de despesas gerais = ' + money(nrm.due) + '.',
+      jovem ? 'Com IRS Jovem: isento o menor de ' + JOVEM_PCT[state.year] * 100 + '% × ' + money(G) + ' e 55 × IAS (29 542,15 €) = ' + money(t.exempt) + '. Sobre os ' + money(t.nonExempt) + ' restantes, dedução específica de ' + money(t.specific) + ' e coletável de ' + money(t.taxable) + '.' : '',
+      jovem ? 'O isento soma-se ao coletável só para achar a taxa: ' + money(t.rateBase) + ' dá uma taxa média de ' + pctFmt(t.avgRate) + '. Imposto: ' + money(t.taxable) + ' × ' + pctFmt(t.avgRate) + ' = ' + money(t.regular) + ', menos ' + money(t.deduction) + ' de despesas gerais = ' + money(t.capped ? t.normal.due : Math.max(0, t.regular - t.deduction)) + '.' + (t.capped ? ' Como ficaria acima do imposto sem IRS Jovem (por causa do mínimo de existência), fica igual a esse.' : '') : '',
+      'Taxas usadas: 12,2%, 15,2%, 20,7%, 23,6%, 30,6% e 34,6% nos seis primeiros escalões, as propostas para 2026. Se a lei final for diferente, o resultado muda.'
+    ]);
+
+    // Settlement
+    set('heldB', money(s.heldBefore)); set('heldA', money(s.heldAfter)); set('dueA', money(t.due));
+    [['balB', 'balBType', s.balBefore], ['balA', 'balAType', s.balAfter]].forEach(([v, p, b]) => { set(v, money(b.amount)); set(p, PILL[b.type]); $(p).className = 'pill ' + b.type; });
+
+    const A = s.balAfter, B = s.balBefore, adv = s.advance;
+    let title, text, text2;
+    if (adv <= 0) {
+      title = 'A medida não mexe no teu IRS de novembro.';
+      text = 'Com estes valores não há retenção para cortar em novembro.';
+      text2 = A.type === 'receive' ? 'O reembolso estimado é de ' + money(A.amount) + '.' : A.type === 'pay' ? 'Estimamos que tenhas de pagar ' + money(A.amount) + ' em 2027.' : 'O acerto estimado é praticamente zero.';
+    } else if (B.type === 'receive' && A.type === 'pay') {
+      title = 'De reembolso a pagamento.';
+      text = 'Recebes ' + money(adv) + ' mais cedo. Sem a medida terias um reembolso de ' + money(B.amount) + '; com ela, passas a pagar ' + money(A.amount) + '.';
+      text2 = 'Não pagas mais imposto no ano: só adiantaste menos. Guarda parte do dinheiro de novembro para o acerto.';
+    } else if (A.type === 'receive') {
+      title = 'Dinheiro mais cedo, reembolso mais pequeno.';
+      text = 'Recebes ' + money(adv) + ' em novembro e o reembolso estimado desce de ' + money(B.amount) + ' para ' + money(A.amount) + '.';
+      text2 = 'O imposto do ano é igual nos dois cenários. Muda só quando recebes o dinheiro.';
+    } else if (A.type === 'pay') {
+      title = 'Dinheiro mais cedo, atenção ao acerto.';
+      text = 'Recebes ' + money(adv) + ' em novembro. O valor a pagar estimado passa de ' + money(B.amount) + ' para ' + money(A.amount) + '.';
+      text2 = 'Reserva parte do dinheiro extra para pagar em 2027.';
+    } else {
+      title = 'Recebes agora o que receberias no reembolso.';
+      text = 'Em novembro recebes ' + money(adv) + ' mais cedo e o acerto estimado fica perto de zero.';
+      text2 = 'O imposto do ano é igual nos dois cenários.';
+    }
+    if (jovem && !inp.onPayslip && t.saving > 0) text2 += ' Como a empresa não aplica o IRS Jovem, os ' + money(t.saving) + ' do benefício chegam no reembolso.';
+    set('verdictTitle', title); set('verdictText', text); set('verdictText2', text2);
+
+    const mr = $('monthRows'); mr.replaceChildren();
+    for (let m = 0; m < 12; m++) {
+      const tr = document.createElement('tr'); if (m === 10) tr.className = 'nov';
+      [MONTHS[m], money(s.after[m].held), money(s.before[m].net), money(s.after[m].net)].forEach(v => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+      mr.appendChild(tr);
+    }
+  }
+
+  draw();
+})();
+</script>
+</body>
+</html>
